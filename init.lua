@@ -116,7 +116,8 @@ local NEGATIVE_TABLE_ACCESS = {
 }
 
 local DEEP_SEARCH = {
-    ["deep"] = 1
+    ["deeply"] = 1,
+    ["recursively"] = 1
 }
 
 local TABLE_REDUCTOR = {
@@ -166,10 +167,9 @@ local function evaluate(self, k, ...)
             Check if the call is successful
         --]]
         if(not try) then 
-            scope._failed = true 
-            requestError = true 
+            scope._failed = true
         end
-        if(scope._requestConjunction) then          
+        if(scope._requestConjunction) then   
             if(scope._failed) then 
                 requestError = true
             end
@@ -179,6 +179,9 @@ local function evaluate(self, k, ...)
             local parentScope = self._scopes[scope]
             self._scope = parentScope 
             scope = parentScope
+            if(scope._negates) then 
+                requestError = not requestError
+            end
         end 
     elseif(scope._isDisjunction) then 
         if(try) then 
@@ -194,6 +197,10 @@ local function evaluate(self, k, ...)
             local parentScope = self._scopes[scope]
             self._scope = parentScope   
             scope = parentScope
+            
+            if(scope._negates) then 
+                requestError = not requestError
+            end
         end
     else 
         if(not try) then 
@@ -242,8 +249,9 @@ local function indexer(self, k)
             _requestConjunction = false,
             _requestDisjunction = false,
             
-            _failed = true
+            _failed = PREPARES_DISJUNCTION[k]
         }
+            
         --[[
             Set it as the current scope
         --]]
@@ -315,6 +323,7 @@ local function indexer(self, k)
 end 
 
 local function define(word, assertion)
+    word = string.lower(word)
     DEFS[word] = assertion 
     CALLABLE[word] = debug.getinfo(assertion).nparams > 1
 end 
@@ -431,7 +440,7 @@ local function modAssert(evaluation, negates, tableAccess, deepAccess, reductor,
         evaluation = not evaluation 
     end
     if(not evaluation) then 
-        error(final)
+        error(final, 0)
     end
 end 
 
@@ -708,7 +717,6 @@ define("keys", function (x, key1, ...)
         if(not type(v) == "table") then return false end
         
         for i, j in pairs(keys) do 
-            print(k, j, c)
             local r = k == j 
             if(parameterReductor == "any") then 
                 if(r) then 
@@ -726,6 +734,35 @@ define("keys", function (x, key1, ...)
             return c == 0
         end
     end, "of "..parameterReductor.." the ("..table.concat(keys, ", ")..") key")
+end)
+
+
+define("values", function (x, value1, ...)
+    local values = {value1, ...}
+    local parameterReductor = x.parameterReductor
+    local valueSize = #values
+    local c = valueSize
+    testedWith(x, function (v, k)
+        if(not type(v) == "table") then return false end
+        
+        for i, j in pairs(values) do 
+            local r = v == j 
+            if(parameterReductor == "any") then 
+                if(r) then 
+                    return true 
+                end 
+            elseif(parameterReductor == "all") then
+                if(r) then 
+                    c = c - 1
+                end
+            end
+        end 
+        if(parameterReductor == "any") then 
+            return false 
+        elseif(parameterReductor == "all") then 
+            return c == 0
+        end
+    end, "of "..parameterReductor.." the ("..table.concat(values, ", ")..") value")
 end)
 
 

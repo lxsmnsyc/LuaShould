@@ -1,4 +1,4 @@
-local this = require "should"
+local this = require "LuaShould"
 
 this("Doesn't care about cases").sHoUlD.bE.tRuThY()
 
@@ -89,3 +89,18 @@ this("123").should.be.numeric()
 this(false).should.Not.be.numeric()
 this({print, "0xDEAD", false}).should.contain.some.numeric()
 this({"123", "0xDEAD", "1e5"}).should.contain.only.numeric()
+
+this("5").should.be.either.Not.a.Number.Or.a.String()
+this(5).should.be.both.an.odd.positive.Number.And.finite()
+this({1, 2, 3, 4, 5}).should.contain.some.numbers()
+
+this({1, 2, 3, {4, 5, {6, 7, 8}}}).should.deeply.contain.only.numbers()
+
+this({1, 2, 3, 4, 5}).should.contain.any.of.the.values(9, 6, 3)
+this({1, 2, 3, 4, 5}).should.contain.all.of.the.values(1, 2, 3)
+
+this.define("divisibleby3", function (x)
+  assert(x.value % 3 == 0, "this is not divisible by 3!")
+end)
+
+this(21).is.divisibleBy3()
