@@ -37,7 +37,7 @@ this("Doesn't care about cases").sHoUlD.bE.tRuThY()
 except if the keywords are similar to the reserved Lua keywords, you must use the keyword in a different case.
 
 #### Connectors
-Connectors are keywords the adds verbosity to the assertions. They pass the context reference to the next keywords.
+Connectors are keywords that adds verbosity to the assertions. They pass the context reference to the next keywords.
 For example:
 ```lua
 this("Hello World").should.be.of.length(11).and.a.String()
